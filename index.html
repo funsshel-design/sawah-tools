@@ -72,7 +72,7 @@ pre{background:#050810;border:1px solid #ffffff12;color:#7ef0c0}details{backgrou
 <div id="app"><nav class="side" id="nav"></nav><main id="main"></main></div>
 <script>
 const $=s=>document.querySelector(s),L=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},S=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
-let users=L('nl_users',[{u:'admin',p:'admin123',r:'admin'},{u:'user',p:'user123',r:'user'}]),tickets=L('nl_tix',[]),cfg=L('nl_cfg',{wa:'628123456789',site:'https://example.com',ssh:'root@192.168.1.1'}),me=null;
+let users=L('nl_users',[{u:'admin',p:'admin123',r:'admin'},{u:'user',p:'user123',r:'user'}]),tickets=L('nl_tix',[]),cfg=L('nl_cfg',{wa:'6285813123254',site:'https://example.com',ssh:'root@192.168.1.1'}),me=null;
 function save(){S('nl_users',users);S('nl_tix',tickets);S('nl_cfg',cfg)}
 try{me=JSON.parse(sessionStorage.getItem('nl_me'))}catch(e){}
 function login(){const u=users.find(x=>x.u===$('#lu').value.trim()&&x.p===$('#lp').value);if(!u){$('#le').textContent='Username atau password salah';return}me=u;try{sessionStorage.setItem('nl_me',JSON.stringify(u))}catch(e){}start()}
@@ -315,6 +315,6 @@ const DONE=L('nl_done',{});
 P.mod=()=>`<h2>Modul Belajar</h2><p class="mut">Pilih modul yang ingin dipelajari, lalu klik <b>Pelajari</b>.</p><div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr))">${MODS.map((m,i)=>`<div class="card" style="margin:0;display:flex;flex-direction:column;gap:8px"><div style="font-size:30px">${MI[i]}</div><h3 style="margin:0">${m[0]}</h3><div class="mut" style="flex:1">${IN[i].slice(0,105)}...</div><div class="mut">${m[1].length} topik ${DONE[i]?'<span class="tag ok">Selesai</span>':''}</div><button onclick="learn(${i})">Pelajari</button></div>`).join('')}</div>`;
 function learn(i){document.body.classList.add('focus');const m=MODS[i];$('#main').innerHTML=`<div class="top"><button class="red" style="padding:8px 14px" onclick="go('mod')">Keluar dari modul</button><span class="mut">Modul ${i+1} dari ${MODS.length}</span></div><h2>${MI[i]} ${m[0]}</h2><div class="card"><h3>Pengantar</h3><p>${IN[i]}</p></div><div class="card"><h3>Penjelasan Lengkap</h3>${EX[i]||''}</div>`+m[1].map((t,k)=>`<div class="card"><h3>${k+1}. ${t[0]}</h3>${t[1]}</div>`).join('')+`<div class="card row"><button class="sec" onclick="learn(${i-1})" ${i?'':'disabled'}>Sebelumnya</button><button onclick="DONE[${i}]=!DONE[${i}];S('nl_done',DONE);learn(${i})">${DONE[i]?'Batalkan tanda selesai':'Tandai selesai'}</button><button class="sec" onclick="learn(${i+1})" ${i<MODS.length-1?'':'disabled'}>Berikutnya</button></div><button class="red" onclick="go('mod')">Keluar dari modul</button>`;scrollTo(0,0)}
 const _g2=go;go=function(p){document.body.classList.remove('focus');_g2(p)};
+if(cfg.wa==='628123456789'){cfg.wa='6285813123254';save()}
 if(me)start();
 </script></body></html>
-
