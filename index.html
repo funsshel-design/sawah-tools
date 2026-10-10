@@ -320,8 +320,8 @@ addEventListener('storage',e=>{if(!me||me.r!=='admin'||e.key!=='nl_tix')return;c
 if(cfg.wa==='628123456789'){cfg.wa='6285813123254';save()}
 let DB=null,UID=null,SYNC=false,MYT=[],MYR={};
 function myT(){if(DB&&UID)return MYT.map(t=>Object.assign({},t,{s:(MYR[t.id]||{}).s||'Baru',r:(MYR[t.id]||{}).r||''}));return tickets.filter(t=>t.u===me.u)}
-function rer(){if(!me||document.body.classList.contains('focus'))return;const a=document.querySelector('#nav a.on'),f=document.activeElement;if(a&&['help','tix','home'].includes(a.dataset.p)&&!(f&&f.matches&&f.matches('input,textarea,select')))go(a.dataset.p)}
-(async()=>{try{if(!window.claude||!claude.use)return;const u=await claude.use('user'),d=await claude.use('db');if(!u||!d)return;UID=await u.id();if(!UID)return;DB=d;
+function rer(){if(!me||document.body.classList.contains('focus'))return;const a=document.querySelector('#nav a.on'),f=document.activeElement;if(a&&['help','tix','home','usr'].includes(a.dataset.p)&&!(f&&f.matches&&f.matches('input,textarea,select')))go(a.dataset.p)}
+const DBR=(async()=>{try{if(!window.claude||!claude.use)return;const u=await claude.use('user'),d=await claude.use('db');if(!u||!d)return;UID=await u.id();if(!UID)return;DB=d;
 DB.doc('tickets/'+UID).onSnapshot(s=>{MYT=(s.exists&&s.data().list)||[];rer()},()=>{});
 DB.doc('replies/'+UID).onSnapshot(s=>{MYR=(s.exists&&s.data().m)||{};rer()},()=>{});
 if(await u.canEdit()){let A=[],R={};const build=()=>{SYNC=true;tickets=A.flatMap(x=>(x.list||[]).map(t=>Object.assign({},t,{u:x.u,cid:x.cid,s:((R[x.cid]||{})[t.id]||{}).s||'Baru',r:((R[x.cid]||{})[t.id]||{}).r||''}))).sort((a,b)=>b.id-a.id);rer()};
@@ -335,5 +335,16 @@ upT=async function(i){const t=tickets[i],was=t.s,r=$('#r'+i).value,s=$('#s'+i).v
 if(SYNC){try{const ref=DB.doc('replies/'+t.cid),cur=(await ref.get()).data()||{},m=Object.assign({},cur.m);m[t.id]={s,r};await ref.set({m})}catch(e){return alert('Gagal menyimpan balasan ('+(e.code||e.message)+')')}t.s=s;t.r=r}
 else{tickets=L('nl_tix',tickets);tickets[i].r=r;tickets[i].s=s;save()}
 go('tix');if(s=='Selesai'&&was!='Selesai'&&confirm('Tiket ditandai Selesai. Kirim laporan ke client lewat WhatsApp sekarang?'))doneMsg(i)};
+let ACC=[];
+async function hsh(u,p){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('netlearn:'+u.toLowerCase()+':'+p));return [...new Uint8Array(d)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+DBR.then(async()=>{if(!DB)return;const u=await claude.use('user');if(await u.canEdit())DB.collection('accounts').onSnapshot(s=>{ACC=s.docs.map(x=>Object.assign({id:x.id},x.data()));rer()},()=>{})});
+login=async function(){const u=$('#lu').value.trim(),p=$('#lp').value;let f=users.find(x=>x.u===u&&x.p===p);
+if(!f){await DBR;if(DB&&UID){try{const s=await DB.doc('accounts/'+UID).get(),a=s.exists&&s.data();if(a&&a.u===u&&a.h===await hsh(u,p))f={u,r:'user'}}catch(e){}}}
+if(!f){$('#le').style.color='';$('#le').textContent='Username atau password salah';return}me=f;try{sessionStorage.setItem('nl_me',JSON.stringify(f))}catch(e){}start()};
+doReg=async function(){const u=$('#ru').value.trim(),p=$('#rp').value,e=$('#re');if(!/^[A-Za-z0-9_.-]{3,20}$/.test(u))return e.textContent='Username 3-20 karakter (huruf, angka, _ . -)';if(p.length<6)return e.textContent='Password minimal 6 karakter';if(p!==$('#rq').value)return e.textContent='Password tidak sama';if(users.some(x=>x.u.toLowerCase()===u.toLowerCase()))return e.textContent='Username sudah dipakai';
+await DBR;if(DB&&UID){try{const ref=DB.doc('accounts/'+UID),s=await ref.get();if(s.exists)return e.textContent='Akun claude ini sudah punya akun NetLearn: '+s.data().u;await ref.set({u,h:await hsh(u,p),at:new Date().toLocaleString('id-ID')})}catch(x){return e.textContent='Gagal mendaftar ('+(x.code||x.message)+'). Pastikan akunmu punya akses Contributor.'}}else{users.push({u,p,r:'user'});save()}
+reg(0);$('#lu').value=u;$('#lp').value='';$('#le').style.color='#22c55e';$('#le').textContent='Akun berhasil dibuat, silakan masuk'};
+async function delAcc(id){if(!confirm('Hapus akun ini? Pengguna tidak bisa login lagi.'))return;try{await DB.doc('accounts/'+id).delete()}catch(e){alert('Gagal menghapus ('+(e.code||e.message)+')')}}
+const _pu=P.usr;P.usr=()=>_pu()+`<div class="card"><h3>Akun terdaftar (database bersama)</h3><p class="mut">Tabel di atas hanya akun lokal browser ini. Pengguna baru mendaftar sendiri lewat tombol Daftar dan muncul di sini dari perangkat mana pun.</p>${ACC.length?`<div class="scroll"><table><tr><th>Username</th><th>Terdaftar</th><th></th></tr>${ACC.map(a=>`<tr><td>${q(a.u)}</td><td>${q(a.at||'')}</td><td><button class="red" style="padding:6px 12px" data-i="${q(a.id)}" onclick="delAcc(this.dataset.i)">Hapus</button></td></tr>`).join('')}</table></div>`:'<p class="mut">Belum ada akun yang mendaftar lewat database.</p>'}</div>`;
 if(me)start();
 </script></body></html>
