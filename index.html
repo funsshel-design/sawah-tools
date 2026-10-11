@@ -70,6 +70,8 @@ pre{background:#050810;border:1px solid #ffffff12;color:#7ef0c0}details{backgrou
 <p class="mut" style="text-align:center">Belum punya akun? <a href="#" onclick="reg();return false" style="color:var(--ac)">Daftar</a></p>
 </div></div>
 <div id="app"><nav class="side" id="nav"></nav><main id="main"></main></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 const $=s=>document.querySelector(s),L=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},S=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 let users=L('nl_users',[{u:'admin',p:'admin123',r:'admin'},{u:'user',p:'user123',r:'user'}]),tickets=L('nl_tix',[]),cfg=L('nl_cfg',{wa:'6285813123254',site:'https://example.com',ssh:'root@192.168.1.1'}),me=null;
@@ -121,7 +123,7 @@ const MODS=[['Dasar Linux',[['Navigasi &amp; file','<pre>pwd; ls -la; cd /etc\nc
 P.mod=()=>`<h2>Modul Belajar</h2>`+MODS.map(m=>`<div class="card"><h3>${m[0]}</h3>${m[1].map(i=>`<details><summary>${i[0]}</summary>${i[1]}</details>`).join('')}</div>`).join('');
 // ---------- Home / Help ----------
 const wa=t=>`https://wa.me/${cfg.wa}?text=${encodeURIComponent(t)}`;
-P.home=()=>{const a=me.r==='admin',op=tickets.filter(t=>t.s!=='Selesai').length;return a?`<h2>Dashboard Admin</h2><div class="grid"><div class="stat grad"><b>${tickets.length}</b>Total tiket</div><div class="stat grad"><b>${op}</b>Tiket terbuka</div><div class="stat grad"><b>${users.length}</b>Pengguna</div></div><div class="card" style="margin-top:16px"><h3>Aksi cepat</h3><div class="row"><button onclick="go('tix')">Kelola tiket</button><button class="sec" onclick="go('remote')">Remote web utama</button></div></div>`
+P.home=()=>{const a=me.r==='admin',op=tickets.filter(t=>t.s!=='Selesai').length;return a?`<h2>Dashboard Admin</h2><div class="grid"><div class="stat grad"><b>${tickets.length}</b>Total tiket</div><div class="stat grad"><b>${op}</b>Tiket terbuka</div><div class="stat grad"><b>${users.length+ACC.length}</b>Pengguna</div></div><div class="card" style="margin-top:16px"><h3>Aksi cepat</h3><div class="row"><button onclick="go('tix')">Kelola tiket</button><button class="sec" onclick="go('remote')">Remote web utama</button></div></div>`
 :`<h2>Halo, ${me.u} 👋</h2><div class="card grad"><h3>Selamat datang di NetLearn</h3>Hitung subnet, rancang topologi, generate config, dan belajar jaringan di satu tempat.</div><div class="grid"><div class="card"><h3>🧮 Kalkulator IP</h3><button onclick="go('ip')">Buka</button></div><div class="card"><h3>🗺️ Topologi</h3><button onclick="go('topo')">Buka</button></div><div class="card"><h3>📚 Modul</h3><button onclick="go('mod')">Belajar</button></div><div class="card"><h3>🛟 Bantuan</h3><button onclick="go('help')">Kirim masalah</button></div></div>`};
 P.help=()=>{const mine=myT();return`<h2>Bantuan / Kontak</h2><div class="card"><h3>Laporkan masalah</h3><input id="tt" placeholder="Judul masalah"><textarea id="td" rows="4" placeholder="Jelaskan masalah jaringan kamu..."></textarea><input id="tw" placeholder="Nomor WhatsApp kamu (contoh 0812...) untuk kabar penyelesaian"><button onclick="addT()">Kirim tiket</button> <a class="btn sec" style="background:transparent;color:var(--ac);border:1px solid var(--ac)" target="_blank" onclick="this.href=wa('Halo, saya '+me.u+' butuh bantuan: '+($('#tt').value||''))">Chat WhatsApp</a></div><div class="card"><h3>Tiket saya</h3>${mine.length?`<div class="scroll"><table><tr><th>Judul</th><th>Status</th><th>Balasan admin</th></tr>${mine.map(t=>`<tr><td>${t.t}</td><td><span class="tag ${t.s==='Selesai'?'ok':'w'}">${t.s}</span></td><td>${t.r||'-'}</td></tr>`).join('')}</table></div>`:'<p class="mut">Belum ada tiket.</p>'}</div>`};
 function addT(){const t=$('#tt').value.trim(),d=$('#td').value.trim(),w=$('#tw').value.replace(/\D/g,'').replace(/^0/,'62'),k=$('#tk').checked;if(!t)return alert('Isi judul masalah dulu');tickets=L('nl_tix',tickets);tickets.unshift({id:Date.now(),u:me.u,t,d,w,s:'Baru',r:'',at:new Date().toLocaleString('id-ID')});save();if(k)window.open(wa('Tiket baru dari '+me.u+'\nJudul: '+t+'\nMasalah: '+d+(w?'\nWA: '+w:'')),'_blank');go('help')}
@@ -318,33 +320,42 @@ function learn(i){document.body.classList.add('focus');const m=MODS[i];$('#main'
 const _g2=go;go=function(p){document.body.classList.remove('focus');users=L('nl_users',users);if(!SYNC)tickets=L('nl_tix',tickets);cfg=L('nl_cfg',cfg);_g2(p)};
 addEventListener('storage',e=>{if(!me||me.r!=='admin'||e.key!=='nl_tix')return;const a=document.querySelector('#nav a.on');if(a&&['tix','home'].includes(a.dataset.p)&&!document.body.classList.contains('focus'))go(a.dataset.p)});
 if(cfg.wa==='628123456789'){cfg.wa='6285813123254';save()}
-let DB=null,UID=null,SYNC=false,MYT=[],MYR={};
-function myT(){if(DB&&UID)return MYT.map(t=>Object.assign({},t,{s:(MYR[t.id]||{}).s||'Baru',r:(MYR[t.id]||{}).r||''}));return tickets.filter(t=>t.u===me.u)}
+// ================= DATABASE BERSAMA (Firebase Firestore) =================
+// Isi config ini dari Firebase Console > Project settings > Your apps > Web app
+const FB_CONFIG={apiKey:"AIzaSyACuK0uhYcKCKmm4liTQjWlTbvfjWdJY_c",authDomain:"sawah-tools.firebaseapp.com",projectId:"sawah-tools",appId:"1:155484981287:web:ab579e26e39f8bc5e72602"};
+let DB=null,SYNC=false,ACC=[],MYT=[],unsubs=[];
+try{if(window.firebase&&FB_CONFIG.projectId&&!FB_CONFIG.projectId.startsWith('ISI_')){firebase.initializeApp(FB_CONFIG);DB=firebase.firestore();SYNC=true}}catch(e){console.error('Firebase init gagal',e)}
+if(!DB)document.querySelector('#login .box').insertAdjacentHTML('afterbegin','<div class="err" style="margin-bottom:8px">Database belum dikonfigurasi: data hanya tersimpan di browser ini.</div>');
+async function hsh(u,p){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('netlearn:'+u.toLowerCase()+':'+p));return [...new Uint8Array(d)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+const errT=e=>(e&&(e.code||e.message))||'error';
+function myT(){return DB?MYT:tickets.filter(t=>t.u===me.u)}
 function rer(){if(!me||document.body.classList.contains('focus'))return;const a=document.querySelector('#nav a.on'),f=document.activeElement;if(a&&['help','tix','home','usr'].includes(a.dataset.p)&&!(f&&f.matches&&f.matches('input,textarea,select')))go(a.dataset.p)}
-const DBR=(async()=>{try{if(!window.claude||!claude.use)return;const u=await claude.use('user'),d=await claude.use('db');if(!u||!d)return;UID=await u.id();if(!UID)return;DB=d;
-DB.doc('tickets/'+UID).onSnapshot(s=>{MYT=(s.exists&&s.data().list)||[];rer()},()=>{});
-DB.doc('replies/'+UID).onSnapshot(s=>{MYR=(s.exists&&s.data().m)||{};rer()},()=>{});
-if(await u.canEdit()){let A=[],R={};const build=()=>{SYNC=true;tickets=A.flatMap(x=>(x.list||[]).map(t=>Object.assign({},t,{u:x.u,cid:x.cid,s:((R[x.cid]||{})[t.id]||{}).s||'Baru',r:((R[x.cid]||{})[t.id]||{}).r||''}))).sort((a,b)=>b.id-a.id);rer()};
-DB.collection('tickets').onSnapshot(s=>{A=s.docs.map(x=>Object.assign({cid:x.id},x.data()));build()},()=>{});
-DB.collection('replies').onSnapshot(s=>{R={};s.docs.forEach(x=>{R[x.id]=x.data().m||{}});build()},()=>{})}}catch(e){}})();
-addT=async function(){const t=$('#tt').value.trim(),d=$('#td').value.trim(),w=$('#tw').value.replace(/\D/g,'').replace(/^0/,'62');if(!t)return alert('Isi judul masalah dulu');const id=Date.now(),at=new Date().toLocaleString('id-ID');
-if(DB&&UID){try{const ref=DB.doc('tickets/'+UID),cur=(await ref.get()).data()||{},list=(cur.list||[]).slice();list.unshift({id,t,d,w,at});await ref.set({u:me.u,list})}catch(e){return alert('Gagal mengirim tiket ('+(e.code||e.message)+'). Pastikan akunmu punya akses Contributor.')}}
-else{tickets=L('nl_tix',tickets);tickets.unshift({id,u:me.u,t,d,w,s:'Baru',r:'',at});save()}
+function subscribe(){unsubs.forEach(f=>f());unsubs=[];if(!DB||!me)return;const bad=e=>{console.error(e);alert('Gagal membaca database ('+errT(e)+'). Cek Firestore Rules.')};
+if(me.r==='admin'){
+unsubs.push(DB.collection('tickets').onSnapshot(s=>{tickets=s.docs.map(x=>Object.assign({},x.data(),{cid:x.id})).sort((a,b)=>b.id-a.id);rer()},bad));
+unsubs.push(DB.collection('accounts').onSnapshot(s=>{ACC=s.docs.map(x=>Object.assign({id:x.id},x.data()));rer()},bad))}
+else unsubs.push(DB.collection('tickets').where('u','==',me.u).onSnapshot(s=>{MYT=s.docs.map(x=>Object.assign({},x.data(),{cid:x.id})).sort((a,b)=>b.id-a.id);rer()},bad))}
+const _st=start;start=function(){_st();subscribe()};
+addT=async function(){const t=$('#tt').value.trim(),d=$('#td').value.trim(),w=$('#tw').value.replace(/\D/g,'').replace(/^0/,'62');if(!t)return alert('Isi judul masalah dulu');const id=Date.now(),at=new Date().toLocaleString('id-ID'),doc={id,u:me.u,t,d,w,s:'Baru',r:'',at};
+if(DB){try{await DB.collection('tickets').doc(String(id)).set(doc)}catch(e){return alert('Gagal mengirim tiket ('+errT(e)+')')}}
+else{tickets=L('nl_tix',tickets);tickets.unshift(doc);save()}
 alert('Tiket terkirim ke admin.');go('help')};
 upT=async function(i){const t=tickets[i],was=t.s,r=$('#r'+i).value,s=$('#s'+i).value;
-if(SYNC){try{const ref=DB.doc('replies/'+t.cid),cur=(await ref.get()).data()||{},m=Object.assign({},cur.m);m[t.id]={s,r};await ref.set({m})}catch(e){return alert('Gagal menyimpan balasan ('+(e.code||e.message)+')')}t.s=s;t.r=r}
+if(DB){try{await DB.collection('tickets').doc(t.cid).update({s,r})}catch(e){return alert('Gagal menyimpan balasan ('+errT(e)+')')}t.s=s;t.r=r}
 else{tickets=L('nl_tix',tickets);tickets[i].r=r;tickets[i].s=s;save()}
 go('tix');if(s=='Selesai'&&was!='Selesai'&&confirm('Tiket ditandai Selesai. Kirim laporan ke client lewat WhatsApp sekarang?'))doneMsg(i)};
-let ACC=[];
-async function hsh(u,p){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('netlearn:'+u.toLowerCase()+':'+p));return [...new Uint8Array(d)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-DBR.then(async()=>{if(!DB)return;const u=await claude.use('user');if(await u.canEdit())DB.collection('accounts').onSnapshot(s=>{ACC=s.docs.map(x=>Object.assign({id:x.id},x.data()));rer()},()=>{})});
-login=async function(){const u=$('#lu').value.trim(),p=$('#lp').value;let f=users.find(x=>x.u===u&&x.p===p);
-if(!f){await DBR;if(DB&&UID){try{const s=await DB.doc('accounts/'+UID).get(),a=s.exists&&s.data();if(a&&a.u===u&&a.h===await hsh(u,p))f={u,r:'user'}}catch(e){}}}
-if(!f){$('#le').style.color='';$('#le').textContent='Username atau password salah';return}me=f;try{sessionStorage.setItem('nl_me',JSON.stringify(f))}catch(e){}start()};
+login=async function(){const u=$('#lu').value.trim(),p=$('#lp').value,e=$('#le');e.style.color='';let f=users.find(x=>x.u===u&&x.p===p);
+if(!f&&DB&&u){try{const s=await DB.collection('accounts').doc(u.toLowerCase()).get(),a=s.exists&&s.data();if(a&&a.h===await hsh(a.u,p))f={u:a.u,r:a.r||'user'}}catch(x){e.textContent='Gagal terhubung ke database ('+errT(x)+')';return}}
+if(!f){e.textContent='Username atau password salah';return}me=f;try{sessionStorage.setItem('nl_me',JSON.stringify(f))}catch(x){}start()};
 doReg=async function(){const u=$('#ru').value.trim(),p=$('#rp').value,e=$('#re');if(!/^[A-Za-z0-9_.-]{3,20}$/.test(u))return e.textContent='Username 3-20 karakter (huruf, angka, _ . -)';if(p.length<6)return e.textContent='Password minimal 6 karakter';if(p!==$('#rq').value)return e.textContent='Password tidak sama';if(users.some(x=>x.u.toLowerCase()===u.toLowerCase()))return e.textContent='Username sudah dipakai';
-await DBR;if(DB&&UID){try{const ref=DB.doc('accounts/'+UID),s=await ref.get();if(s.exists)return e.textContent='Akun claude ini sudah punya akun NetLearn: '+s.data().u;await ref.set({u,h:await hsh(u,p),at:new Date().toLocaleString('id-ID')})}catch(x){return e.textContent='Gagal mendaftar ('+(x.code||x.message)+'). Pastikan akunmu punya akses Contributor.'}}else{users.push({u,p,r:'user'});save()}
+if(DB){try{const ref=DB.collection('accounts').doc(u.toLowerCase());if((await ref.get()).exists)return e.textContent='Username sudah dipakai';await ref.set({u,r:'user',h:await hsh(u,p),at:new Date().toLocaleString('id-ID')})}catch(x){return e.textContent='Gagal mendaftar ('+errT(x)+')'}}
+else{users.push({u,p,r:'user'});save()}
 reg(0);$('#lu').value=u;$('#lp').value='';$('#le').style.color='#22c55e';$('#le').textContent='Akun berhasil dibuat, silakan masuk'};
-async function delAcc(id){if(!confirm('Hapus akun ini? Pengguna tidak bisa login lagi.'))return;try{await DB.doc('accounts/'+id).delete()}catch(e){alert('Gagal menghapus ('+(e.code||e.message)+')')}}
-const _pu=P.usr;P.usr=()=>_pu()+`<div class="card"><h3>Akun terdaftar (database bersama)</h3><p class="mut">Tabel di atas hanya akun lokal browser ini. Pengguna baru mendaftar sendiri lewat tombol Daftar dan muncul di sini dari perangkat mana pun.</p>${ACC.length?`<div class="scroll"><table><tr><th>Username</th><th>Terdaftar</th><th></th></tr>${ACC.map(a=>`<tr><td>${q(a.u)}</td><td>${q(a.at||'')}</td><td><button class="red" style="padding:6px 12px" data-i="${q(a.id)}" onclick="delAcc(this.dataset.i)">Hapus</button></td></tr>`).join('')}</table></div>`:'<p class="mut">Belum ada akun yang mendaftar lewat database.</p>'}</div>`;
+addU=async function(){const u=$('#nu').value.trim(),p=$('#np').value,r=$('#nr').value;if(!/^[A-Za-z0-9_.-]{3,20}$/.test(u)||p.length<6)return alert('Username 3-20 karakter, password min 6');if(users.some(x=>x.u.toLowerCase()===u.toLowerCase()))return alert('Username sudah ada');
+if(DB){try{const ref=DB.collection('accounts').doc(u.toLowerCase());if((await ref.get()).exists)return alert('Username sudah ada');await ref.set({u,r,h:await hsh(u,p),at:new Date().toLocaleString('id-ID')})}catch(x){return alert('Gagal menambah akun ('+errT(x)+')')}}
+else{users.push({u,p,r});save()}
+go('usr')};
+async function delAcc(id){if(!confirm('Hapus akun ini? Pengguna tidak bisa login lagi.'))return;try{await DB.collection('accounts').doc(id).delete()}catch(e){alert('Gagal menghapus ('+errT(e)+')')}}
+const _pu=P.usr;P.usr=()=>{if(!DB)return _pu();return`<h2>Pengguna</h2><div class="card scroll"><table><tr><th>Username</th><th>Role</th><th>Terdaftar</th><th></th></tr>${users.map(u=>`<tr><td>${q(u.u)}</td><td>${q(u.r)}</td><td class="mut">bawaan</td><td></td></tr>`).join('')}${ACC.map(a=>`<tr><td>${q(a.u)}</td><td>${q(a.r||'user')}</td><td class="mut">${q(a.at||'')}</td><td><button class="red" style="padding:6px 12px" data-i="${q(a.id)}" onclick="delAcc(this.dataset.i)">Hapus</button></td></tr>`).join('')}</table></div><div class="card"><h3>Tambah akun</h3><div class="row"><input id="nu" placeholder="username"><input id="np" placeholder="password"><select id="nr"><option>user</option><option>admin</option></select><button onclick="addU()">Tambah</button></div></div>`};
 if(me)start();
 </script></body></html>
