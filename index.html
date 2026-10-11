@@ -410,28 +410,32 @@ l.style.cssText='position:fixed;inset:0;z-index:-2;background-size:cover;backgro
 const b=Math.max(0,Math.min(12,+t.blur||0)),d=Math.max(0,Math.min(80,+t.dim||0))/100;
 o.style.cssText='position:fixed;inset:0;z-index:-1;pointer-events:none;background:rgba(0,0,0,'+d+');backdrop-filter:blur('+b+'px);-webkit-backdrop-filter:blur('+b+'px)'}
 applyTheme(TH);
-let GIFC={ver:0,data:''},ldTok=0;
+let GIFC={ver:0,data:''},ldTok=0,thBusy=false;
+const idb=(m,k,v)=>new Promise((res,rej)=>{const r=indexedDB.open('nl_cache',1);r.onupgradeneeded=()=>r.result.createObjectStore('k');r.onerror=()=>rej(r.error);r.onsuccess=()=>{const st=r.result.transaction('k',m==='get'?'readonly':'readwrite').objectStore('k'),rq=m==='get'?st.get(k):st.put(v,k);rq.onsuccess=()=>res(rq.result);rq.onerror=()=>rej(rq.error)}});
 async function loadTheme(d){const tok=++ldTok;let t=Object.assign({},THD0,d);
-if(d.gif){if(GIFC.ver===d.gif.ver)t.bg=GIFC.data;else{t.bg='';TH=t;applyTheme(THD||TH);try{const r=await Promise.all(Array.from({length:d.gif.n},(_,k)=>DB.collection('settings').doc('bg_'+k).get()));const data=r.map(x=>x.data().d).join('');GIFC={ver:d.gif.ver,data};t.bg=data}catch(e){console.error('Gagal memuat GIF',e)}}}
+if(d.gif){if(GIFC.ver===d.gif.ver)t.bg=GIFC.data;else{let c=null;try{c=await idb('get','gif')}catch(e){}
+if(c&&c.ver===d.gif.ver){GIFC=c;t.bg=c.data}else{t.bg='';TH=t;applyTheme(THD||TH);try{const r=await Promise.all(Array.from({length:d.gif.n},(_,k)=>DB.collection('settings').doc('bg_'+d.gif.ver+'_'+k).get()));const data=r.map(x=>x.data().d).join('');GIFC={ver:d.gif.ver,data};t.bg=data;try{await idb('put','gif',GIFC)}catch(e){}}catch(e){console.error('Gagal memuat GIF',e)}}}}
 if(tok!==ldTok)return;TH=t;S('nl_theme',d.gif?Object.assign({},t,{bg:'',gif:null}):t);applyTheme(THD||TH)}
 if(DB)DB.collection('settings').doc('theme').onSnapshot(s=>loadTheme(s.exists?s.data():{}),e=>console.error('Tema gagal dibaca (cek Rules untuk settings)',e));
 function thPrev(){const e=$('#thp');if(!e)return;e.style.backgroundColor=THD.color||'#0b1020';e.style.backgroundImage=THD.bg?'url('+THD.bg+')':'none'}
 function thSet(k,v){THD[k]=v;$('#t'+k).textContent=v+(k=='dim'?'%':'px');applyTheme(THD)}
 function rdData(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('Gagal membaca file'));r.readAsDataURL(f)})}
-async function thFile(i){const f=i.files[0];i.value='';if(!f)return;try{if(f.type==='image/gif'){if(f.size>3*1024*1024)return alert('GIF terlalu besar. Maksimal 3 MB, coba kecilkan dulu ukuran atau durasinya.');THD.bg=await rdData(f)}else THD.bg=await toJpeg(f,1280,false,850000);THD.color='';thPrev();applyTheme(THD)}catch(e){alert(e.message)}}
+async function thFile(i){const f=i.files[0];i.value='';if(!f)return;try{if(f.type==='image/gif'){if(f.size>10*1024*1024)return alert('GIF terlalu besar. Maksimal 10 MB, coba kecilkan dulu ukuran atau durasinya.');THD.bg=await rdData(f)}else THD.bg=await toJpeg(f,1280,false,850000);THD.color='';thPrev();applyTheme(THD)}catch(e){alert(e.message)}}
 function thClear(){THD.bg='';thPrev();applyTheme(THD)}
 function thColor(c){THD.color=c;THD.bg='';thPrev();applyTheme(THD)}
-async function thSave(){const d=Object.assign({},THD),big=d.bg.length>850000;let meta=null;
-if(DB){try{const ref=DB.collection('settings').doc('theme'),old=TH.gif;
-if(big){if(old&&d.bg===TH.bg)meta=old;else{const ver=Date.now(),parts=[];for(let k=0;k<d.bg.length;k+=800000)parts.push(d.bg.slice(k,k+800000));const b=DB.batch();parts.forEach((c,k)=>b.set(DB.collection('settings').doc('bg_'+k),{d:c,ver}));if(old)for(let k=parts.length;k<old.n;k++)b.delete(DB.collection('settings').doc('bg_'+k));b.set(ref,{dim:d.dim,blur:d.blur,color:d.color||'',bg:'',gif:{n:parts.length,ver}});await b.commit();meta={n:parts.length,ver};GIFC={ver,data:d.bg}}}
-if(!big&&old){const b=DB.batch();for(let k=0;k<old.n;k++)b.delete(DB.collection('settings').doc('bg_'+k));await b.commit()}
-if(!big||meta===old)await ref.set({dim:d.dim,blur:d.blur,color:d.color||'',bg:big?'':d.bg,gif:meta})}
-catch(e){return alert('Gagal menyimpan tampilan ('+errT(e)+'). Pastikan Rules untuk settings sudah ditambahkan.')}}
-d.gif=meta;TH=d;S('nl_theme',big?Object.assign({},d,{bg:'',gif:null}):d);alert('Tampilan disimpan untuk semua pengguna')}
+async function thSave(){if(thBusy)return alert('Masih menyimpan, tunggu sebentar...');const d=Object.assign({},THD),big=d.bg.length>850000,old=TH.gif;let meta=null;thBusy=true;
+if(DB){try{const ref=DB.collection('settings').doc('theme'),cd=(v,k)=>DB.collection('settings').doc('bg_'+v+'_'+k);
+if(big){if(old&&d.bg===TH.bg)meta=old;else{const ver=Date.now(),parts=[];for(let k=0;k<d.bg.length;k+=800000)parts.push(d.bg.slice(k,k+800000));
+for(let k=0;k<parts.length;k+=4){const b=DB.batch();parts.slice(k,k+4).forEach((c,j)=>b.set(cd(ver,k+j),{d:c}));await b.commit()}
+meta={n:parts.length,ver};GIFC={ver,data:d.bg};try{await idb('put','gif',GIFC)}catch(e){}}}
+await ref.set({dim:d.dim,blur:d.blur,color:d.color||'',bg:big?'':d.bg,gif:meta});
+if(old&&(!meta||meta.ver!==old.ver)){try{for(let k=0;k<old.n;k+=20){const b=DB.batch();for(let j=k;j<Math.min(old.n,k+20);j++)b.delete(cd(old.ver,j));await b.commit()}}catch(e){}}}
+catch(e){thBusy=false;return alert('Gagal menyimpan tampilan ('+errT(e)+'). Pastikan Rules untuk settings sudah ditambahkan.')}}
+thBusy=false;d.gif=meta;TH=d;S('nl_theme',big?Object.assign({},d,{bg:'',gif:null}):d);alert('Tampilan disimpan untuk semua pengguna')}
 function thReset(){ask('Background dan pengaturannya akan dikembalikan ke default.',{title:'Kembalikan default?',yes:'Ya, kembalikan'}).then(ok=>{if(ok){THD=Object.assign({},THD0);thPrev();applyTheme(THD);thSave();go('theme')}})}
 P.theme=()=>{if(!THD)THD=Object.assign({},TH);const d=THD;return`<h2>Tampilan web</h2><div class="card"><h3>Background</h3><div id="thp" style="height:180px;border-radius:18px;border:1px solid #ffffff1a;background-size:cover;background-position:center"></div>
 <div class="row" style="margin-top:12px"><button onclick="this.nextElementSibling.click()">Pilih gambar (PNG/JPG/GIF)</button><input type="file" accept="image/*" style="display:none" onchange="thFile(this)"><button class="sec" onclick="thClear()">Hapus gambar</button></div>
-<p class="mut">PNG/JPG dikecilkan otomatis. GIF dipakai apa adanya agar tetap bergerak (maks 3 MB). Tampil di semua perangkat setelah disimpan.</p>
+<p class="mut">PNG/JPG dikecilkan otomatis. GIF dipakai apa adanya agar tetap bergerak (maks 10 MB). Tampil di semua perangkat setelah disimpan.</p>
 <label>Gelapkan: <span id="tdim">${d.dim}%</span></label><input type="range" min="0" max="80" step="1" value="${d.dim}" oninput="thSet('dim',+this.value)">
 <label>Blur: <span id="tblur">${d.blur}px</span></label><input type="range" min="0" max="12" step="1" value="${d.blur}" oninput="thSet('blur',+this.value)">
 <label>Warna polos (dipakai kalau tanpa gambar)</label><div class="row" style="gap:8px;margin:6px 0 14px">${['#1e2a5a','#0f3d3a','#4a1d3d','#1a1a1a','#3b2a12'].map(c=>`<div class="sw2" style="background:${c}" onclick="thColor('${c}')"></div>`).join('')}</div>
