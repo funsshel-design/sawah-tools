@@ -69,6 +69,18 @@ pre{background:#050810;border:1px solid #ffffff12;color:#7ef0c0}details{backgrou
 .mdl .ic.i{background:#22d3ee22;color:#22d3ee}.mdl h3{margin:0 0 6px;font-size:18px}.mdl p{margin:0 0 20px;color:var(--mut);white-space:pre-line}
 .mdl .acts{display:flex;gap:10px;justify-content:flex-end}.mdl button{min-width:90px}
 @keyframes mf{from{opacity:0}}@keyframes mp{from{opacity:0;transform:translateY(8px) scale(.97)}}
+
+#login{background:transparent}
+.side{background:#080d1acc;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.card{border-radius:24px;padding:22px}
+.bento{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:minmax(130px,auto);gap:14px;margin-bottom:16px}
+.bt{border-radius:26px;padding:20px;border:1px solid #ffffff1a;background:color-mix(in srgb,var(--c,#6366f1) 24%,#0b1020d9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;justify-content:space-between;gap:10px;min-width:0;transition:.2s}
+.bt b{font-size:38px;line-height:1;display:block}.bt b.big{font-size:72px}.bt small{color:#ffffffb8;font-size:13px;display:block}
+.bt.w2{grid-column:span 2}.bt.h2{grid-row:span 2}.bt.lk{cursor:pointer}.bt.lk:hover{transform:translateY(-3px);border-color:var(--c)}
+.av{border-radius:50%;object-fit:cover;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#22d3ee,#6366f1);color:#04101c;font-weight:700;flex-shrink:0}
+.sw2{width:46px;height:34px;border-radius:10px;border:2px solid #ffffff22;cursor:pointer;flex:none;min-width:0}
+a[data-p=profile]::before{content:'\1F464'}a[data-p=theme]::before{content:'\1F3A8'}
+@media(max-width:800px){.bento{grid-template-columns:repeat(2,minmax(0,1fr))}.bt b.big{font-size:56px}}
 </style></head><body>
 <div id="login"><div class="box"><div class="logo">Net<span>Learn</span></div><p class="mut">Network toolkit, modul belajar &amp; helpdesk</p>
 <label>Username</label><input id="lu" autocomplete="username"><label>Password</label><input id="lp" type="password" autocomplete="current-password">
@@ -227,9 +239,9 @@ sv.onpointerdown=e=>{const x=e.target.closest&&e.target.closest('g[data-id]');if
 sv.onpointermove=e=>{if(!dr)return;mv=1;const r=sv.getBoundingClientRect();dr.x=Math.max(40,Math.min(860,(e.clientX-r.left)*900/r.width));dr.y=Math.max(40,Math.min(400,(e.clientY-r.top)*460/r.height));lrs()};
 sv.onpointerup=sv.onpointercancel=()=>{if(dr){dr=null;lr();if(!mv){const p=$('#lp');p&&p.scrollIntoView({behavior:'smooth',block:'nearest'})}}}};
 const _lr=lr;lr=function(){_lr();if(!$('#lp'))return;if(!$('#chips'))$('#lp').insertAdjacentHTML('beforebegin','<div id="chips" class="row" style="margin-bottom:12px"></div>');$('#chips').innerHTML=lab.d.map(d=>`<button class="${d.id==lab.sel?'':'sec'}" onclick="lab.sel=${d.id};lr();$('#lp').scrollIntoView({behavior:'smooth',block:'nearest'})">${ICO[d.t]} ${d.n}</button>`).join('')};
-document.querySelector('#login').insertAdjacentHTML('beforeend',`<div class="box" id="rb" style="display:none"><div class="logo">Net<span>Learn</span></div><p class="mut">Buat akun baru</p><label>Username</label><input id="ru" autocomplete="username"><label>Password (min 6 karakter)</label><input id="rp" type="password" autocomplete="new-password"><label>Ulangi password</label><input id="rq" type="password" autocomplete="new-password"><div class="err" id="re"></div><button style="width:100%" onclick="doReg()">Daftar</button><p class="mut" style="text-align:center">Sudah punya akun? <a href="#" onclick="reg(0);return false" style="color:var(--ac)">Masuk</a></p></div>`);
+document.querySelector('#login').insertAdjacentHTML('beforeend',`<div class="box" id="rb" style="display:none"><div class="logo">Net<span>Learn</span></div><p class="mut">Buat akun baru</p><label>Username</label><input id="ru" autocomplete="username"><label>Password</label><input id="rp" type="password" autocomplete="new-password"><label>Ulangi password</label><input id="rq" type="password" autocomplete="new-password"><div class="err" id="re"></div><button style="width:100%" onclick="doReg()">Daftar</button><p class="mut" style="text-align:center">Sudah punya akun? <a href="#" onclick="reg(0);return false" style="color:var(--ac)">Masuk</a></p></div>`);
 reg=function(on=1){document.querySelector('#login .box').style.display=on?'none':'';$('#rb').style.display=on?'':'none';$('#le').textContent='';$('#re').textContent=''};
-function doReg(){const u=$('#ru').value.trim(),p=$('#rp').value,e=$('#re');if(!/^[A-Za-z0-9_.-]{3,20}$/.test(u))return e.textContent='Username 3-20 karakter (huruf, angka, _ . -)';if(p.length<6)return e.textContent='Password minimal 6 karakter';if(p!==$('#rq').value)return e.textContent='Password tidak sama';if(users.some(x=>x.u.toLowerCase()===u.toLowerCase()))return e.textContent='Username sudah dipakai';users.push({u,p,r:'user'});save();reg(0);$('#lu').value=u;$('#lp').value='';$('#le').style.color='#22c55e';$('#le').textContent='Akun berhasil dibuat, silakan masuk'}
+function doReg(){const u=$('#ru').value.trim(),p=$('#rp').value,e=$('#re');if(!/^[A-Za-z0-9_.-]{5,20}$/.test(u))return e.textContent='Username minimal 5 karakter (huruf, angka, _ . -)';if(pwErr(p))return e.textContent=pwErr(p);if(p!==$('#rq').value)return e.textContent='Password tidak sama';if(users.some(x=>x.u.toLowerCase()===u.toLowerCase()))return e.textContent='Username sudah dipakai';users.push({u,p,r:'user'});save();reg(0);$('#lu').value=u;$('#lp').value='';$('#le').style.color='#22c55e';$('#le').textContent='Akun berhasil dibuat, silakan masuk'}
 const _ps=P.set;P.set=()=>_ps()+`<div class="card"><h3>Ganti password admin</h3><input id="co" type="password" placeholder="Password lama"><input id="cp" type="password" placeholder="Password baru (min 6 karakter)"><button onclick="chp()">Simpan</button></div>`;
 function chp(){if(me.r!=='admin')return;const u=users.find(x=>x.u===me.u),p=$('#cp').value;if($('#co').value!==u.p)return alert('Password lama salah');if(p.length<6)return alert('Minimal 6 karakter');u.p=p;save();$('#co').value=$('#cp').value='';alert('Password admin diganti')}
 lab.mode='cfg';lab.from=null;
@@ -337,19 +349,20 @@ window.alert=m=>{dlg(String(m),{alert:true,danger:false,title:'Pemberitahuan'})}
 // ================= DATABASE BERSAMA (Firebase Firestore) =================
 // Isi config ini dari Firebase Console > Project settings > Your apps > Web app
 const FB_CONFIG={apiKey:"AIzaSyACuK0uhYcKCKmm4liTQjWlTbvfjWdJY_c",authDomain:"sawah-tools.firebaseapp.com",projectId:"sawah-tools",appId:"1:155484981287:web:ab579e26e39f8bc5e72602"};
-let DB=null,SYNC=false,ACC=[],MYT=[],unsubs=[];
+let DB=null,SYNC=false,ACC=[],MYT=[],unsubs=[],PROF={},PF=null;
 try{if(window.firebase&&FB_CONFIG.projectId&&!FB_CONFIG.projectId.startsWith('ISI_')){firebase.initializeApp(FB_CONFIG);DB=firebase.firestore();SYNC=true}}catch(e){console.error('Firebase init gagal',e)}
 if(!DB)document.querySelector('#login .box').insertAdjacentHTML('afterbegin','<div class="err" style="margin-bottom:8px">Database belum dikonfigurasi: data hanya tersimpan di browser ini.</div>');
 async function hsh(u,p){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('netlearn:'+u.toLowerCase()+':'+p));return [...new Uint8Array(d)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 const errT=e=>(e&&(e.code||e.message))||'error';
 function myT(){return DB?MYT:tickets.filter(t=>t.u===me.u)}
-function rer(){if(!me||document.body.classList.contains('focus'))return;const a=document.querySelector('#nav a.on'),f=document.activeElement;if(a&&['help','tix','home','usr'].includes(a.dataset.p)&&!(f&&f.matches&&f.matches('input,textarea,select')))go(a.dataset.p)}
-function subscribe(){unsubs.forEach(f=>f());unsubs=[];if(!DB||!me)return;const bad=e=>{console.error(e);alert('Gagal membaca database ('+errT(e)+'). Cek Firestore Rules.')};
+function rer(){if(!me||document.body.classList.contains('focus'))return;const a=document.querySelector('#nav a.on'),f=document.activeElement;if(a&&['help','tix','home','usr','profile'].includes(a.dataset.p)&&!(f&&f.matches&&f.matches('input,textarea,select')))go(a.dataset.p)}
+function subscribe(){unsubs.forEach(f=>f());unsubs=[];PROF={};if(!DB||!me)return;const bad=e=>{console.error(e);alert('Gagal membaca database ('+errT(e)+'). Cek Firestore Rules.')};
+unsubs.push(DB.collection('accounts').doc(me.u.toLowerCase()).onSnapshot(s=>{PROF=s.exists?s.data():{};paintNav();rer()},bad));
 if(me.r==='admin'){
 unsubs.push(DB.collection('tickets').onSnapshot(s=>{tickets=s.docs.map(x=>Object.assign({},x.data(),{cid:x.id})).sort((a,b)=>b.id-a.id);rer()},bad));
 unsubs.push(DB.collection('accounts').onSnapshot(s=>{ACC=s.docs.map(x=>Object.assign({id:x.id},x.data()));rer()},bad))}
 else unsubs.push(DB.collection('tickets').where('u','==',me.u).onSnapshot(s=>{MYT=s.docs.map(x=>Object.assign({},x.data(),{cid:x.id})).sort((a,b)=>b.id-a.id);rer()},bad))}
-const _st=start;start=function(){_st();subscribe()};
+const _st=start;start=function(){_st();paintNav();subscribe()};
 addT=async function(){const t=$('#tt').value.trim(),d=$('#td').value.trim(),w=$('#tw').value.replace(/\D/g,'').replace(/^0/,'62');if(!t)return alert('Isi judul masalah dulu');const id=Date.now(),at=new Date().toLocaleString('id-ID'),doc={id,u:me.u,t,d,w,s:'Baru',r:'',at};
 if(DB){try{await DB.collection('tickets').doc(String(id)).set(doc)}catch(e){return alert('Gagal mengirim tiket ('+errT(e)+')')}}
 else{tickets=L('nl_tix',tickets);tickets.unshift(doc);save()}
@@ -358,18 +371,103 @@ upT=async function(i){const t=tickets[i],was=t.s,r=$('#r'+i).value,s=$('#s'+i).v
 if(DB){try{await DB.collection('tickets').doc(t.cid).update({s,r})}catch(e){return alert('Gagal menyimpan balasan ('+errT(e)+')')}t.s=s;t.r=r}
 else{tickets=L('nl_tix',tickets);tickets[i].r=r;tickets[i].s=s;save()}
 go('tix');if(s=='Selesai'&&was!='Selesai'&&await ask('Tiket ditandai Selesai. Kirim laporan ke client lewat WhatsApp sekarang?',{title:'Kirim laporan?',yes:'Ya, kirim',danger:false}))doneMsg(i)};
-login=async function(){const u=$('#lu').value.trim(),p=$('#lp').value,e=$('#le');e.style.color='';let f=users.find(x=>x.u===u&&x.p===p);
-if(!f&&DB&&u){try{const s=await DB.collection('accounts').doc(u.toLowerCase()).get(),a=s.exists&&s.data();if(a&&a.h===await hsh(a.u,p))f={u:a.u,r:a.r||'user'}}catch(x){e.textContent='Gagal terhubung ke database ('+errT(x)+')';return}}
-if(!f){e.textContent='Username atau password salah';return}me=f;try{sessionStorage.setItem('nl_me',JSON.stringify(f))}catch(x){}start()};
-doReg=async function(){const u=$('#ru').value.trim(),p=$('#rp').value,e=$('#re');if(!/^[A-Za-z0-9_.-]{3,20}$/.test(u))return e.textContent='Username 3-20 karakter (huruf, angka, _ . -)';if(p.length<6)return e.textContent='Password minimal 6 karakter';if(p!==$('#rq').value)return e.textContent='Password tidak sama';if(users.some(x=>x.u.toLowerCase()===u.toLowerCase()))return e.textContent='Username sudah dipakai';
+login=async function(){const u=$('#lu').value.trim(),p=$('#lp').value,e=$('#le');e.style.color='';let f=null,doc=null;
+if(DB&&u){try{const s=await DB.collection('accounts').doc(u.toLowerCase()).get();if(s.exists)doc=s.data()}catch(x){e.textContent='Gagal terhubung ke database ('+errT(x)+')';return}}
+if(doc&&doc.h){if(doc.h===await hsh(doc.u||u,p))f={u:doc.u||u,r:doc.r||'user'}}
+else{const l=users.find(x=>x.u===u&&x.p===p);if(l)f={u:l.u,r:l.r}}
+if(!f){e.textContent='Username atau password salah';return}me=f;PF=null;try{sessionStorage.setItem('nl_me',JSON.stringify(f))}catch(x){}start()};
+doReg=async function(){const u=$('#ru').value.trim(),p=$('#rp').value,e=$('#re');if(!/^[A-Za-z0-9_.-]{5,20}$/.test(u))return e.textContent='Username minimal 5 karakter (huruf, angka, _ . -)';if(pwErr(p))return e.textContent=pwErr(p);if(p!==$('#rq').value)return e.textContent='Password tidak sama';if(users.some(x=>x.u.toLowerCase()===u.toLowerCase()))return e.textContent='Username sudah dipakai';
 if(DB){try{const ref=DB.collection('accounts').doc(u.toLowerCase());if((await ref.get()).exists)return e.textContent='Username sudah dipakai';await ref.set({u,r:'user',h:await hsh(u,p),at:new Date().toLocaleString('id-ID')})}catch(x){return e.textContent='Gagal mendaftar ('+errT(x)+')'}}
 else{users.push({u,p,r:'user'});save()}
 reg(0);$('#lu').value=u;$('#lp').value='';$('#le').style.color='#22c55e';$('#le').textContent='Akun berhasil dibuat, silakan masuk'};
-addU=async function(){const u=$('#nu').value.trim(),p=$('#np').value,r=$('#nr').value;if(!/^[A-Za-z0-9_.-]{3,20}$/.test(u)||p.length<6)return alert('Username 3-20 karakter, password min 6');if(users.some(x=>x.u.toLowerCase()===u.toLowerCase()))return alert('Username sudah ada');
+addU=async function(){const u=$('#nu').value.trim(),p=$('#np').value,r=$('#nr').value;if(!/^[A-Za-z0-9_.-]{5,20}$/.test(u))return alert('Username minimal 5 karakter (huruf, angka, _ . -)');if(pwErr(p))return alert(pwErr(p));if(users.some(x=>x.u.toLowerCase()===u.toLowerCase()))return alert('Username sudah ada');
 if(DB){try{const ref=DB.collection('accounts').doc(u.toLowerCase());if((await ref.get()).exists)return alert('Username sudah ada');await ref.set({u,r,h:await hsh(u,p),at:new Date().toLocaleString('id-ID')})}catch(x){return alert('Gagal menambah akun ('+errT(x)+')')}}
 else{users.push({u,p,r});save()}
 go('usr')};
 async function delAcc(id){if(!await ask('Akun ini akan dihapus dan pengguna tidak bisa login lagi.',{title:'Hapus akun?',yes:'Ya, hapus'}))return;try{await DB.collection('accounts').doc(id).delete()}catch(e){alert('Gagal menghapus ('+errT(e)+')')}}
-const _pu=P.usr;P.usr=()=>{if(!DB)return _pu();return`<h2>Pengguna</h2><div class="card scroll"><table><tr><th>Username</th><th>Role</th><th>Terdaftar</th><th></th></tr>${users.map(u=>`<tr><td>${q(u.u)}</td><td>${q(u.r)}</td><td class="mut">bawaan</td><td></td></tr>`).join('')}${ACC.map(a=>`<tr><td>${q(a.u)}</td><td>${q(a.r||'user')}</td><td class="mut">${q(a.at||'')}</td><td><button class="red" style="padding:6px 12px" data-i="${q(a.id)}" onclick="delAcc(this.dataset.i)">Hapus</button></td></tr>`).join('')}</table></div><div class="card"><h3>Tambah akun</h3><div class="row"><input id="nu" placeholder="username"><input id="np" placeholder="password"><select id="nr"><option>user</option><option>admin</option></select><button onclick="addU()">Tambah</button></div></div>`};
+const _pu=P.usr;P.usr=()=>{if(!DB)return _pu();return`<h2>Pengguna</h2><div class="card scroll"><table><tr><th>Username</th><th>Role</th><th>Terdaftar</th><th></th></tr>${users.map(u=>`<tr><td>${q(u.u)}</td><td>${q(u.r)}</td><td class="mut">bawaan</td><td></td></tr>`).join('')}${ACC.filter(a=>a.id!=='admin').map(a=>`<tr><td>${av(a.u,a.photo,24)} ${q(a.u)}</td><td>${q(a.r||'user')}</td><td class="mut">${q(a.at||'')}</td><td><button class="red" style="padding:6px 12px" data-i="${q(a.id)}" onclick="delAcc(this.dataset.i)">Hapus</button></td></tr>`).join('')}</table></div><div class="card"><h3>Tambah akun</h3><div class="row"><input id="nu" placeholder="username"><input id="np" placeholder="password"><select id="nr"><option>user</option><option>admin</option></select><button onclick="addU()">Tambah</button></div></div>`};
+// ================= TEMA, PROFIL, ATURAN PASSWORD =================
+const pwChecks=p=>[[p.length>=8,'8+ karakter'],[/[A-Z]/.test(p),'huruf besar'],[/\d/.test(p),'angka'],[/[^A-Za-z0-9]/.test(p),'simbol']];
+const pwErr=p=>p.length<8?'Password minimal 8 karakter':!/[A-Z]/.test(p)?'Password harus mengandung huruf besar':!/\d/.test(p)?'Password harus mengandung angka':!/[^A-Za-z0-9]/.test(p)?'Password harus mengandung simbol (contoh: ! @ # $ %)':'';
+function hint(i,t){const e=$('#'+t);if(e)e.innerHTML=pwChecks($('#'+i).value).map(c=>'<span style="color:'+(c[0]?'#22c55e':'#8b97b5')+';margin-right:10px;white-space:nowrap">'+(c[0]?'\u2713':'\u25CB')+' '+c[1]+'</span>').join('')}
+$('#ru').insertAdjacentHTML('afterend','<div class="mut" style="margin:-6px 0 8px;font-size:12px">Minimal 5 karakter: huruf, angka, _ . -</div>');
+$('#rp').insertAdjacentHTML('afterend','<div id="rph" style="font-size:12px;margin:-6px 0 8px;line-height:1.7"></div>');
+$('#rp').addEventListener('input',()=>hint('rp','rph'));hint('rp','rph');
+const av=(n,ph,z)=>ph&&String(ph).startsWith('data:image/')?'<img class="av" alt="" src="'+q(ph)+'" style="width:'+z+'px;height:'+z+'px">':'<span class="av" style="width:'+z+'px;height:'+z+'px;font-size:'+Math.round(z*.42)+'px">'+q((n||'?').charAt(0).toUpperCase())+'</span>';
+const getProf=()=>DB?PROF:(users.find(x=>x.u===me.u)||{});
+function paintNav(){const n=$('#nav');if(!n||!me)return;let e=$('#nvp');if(!e){const m=n.querySelector('p.mut');if(m){m.insertAdjacentHTML('beforebegin','<div id="nvp"></div>');m.remove()}e=$('#nvp')}if(!e)return;const p=getProf();
+e.innerHTML='<div style="display:flex;align-items:center;gap:10px;margin:2px 0 12px;padding:10px;border-radius:16px;background:#ffffff0a;border:1px solid #ffffff12;cursor:pointer" onclick="go(\'profile\')">'+av(me.u,p.photo,40)+'<div style="min-width:0"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis">'+q(me.u)+'</div><span class="tag">'+q(me.r)+'</span></div></div>'}
+function imgLoad(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('File bukan gambar yang valid'));i.src=r.result};r.onerror=()=>rej(new Error('Gagal membaca file'));r.readAsDataURL(f)})}
+async function toJpeg(f,max,sq,limit){const i=await imgLoad(f);let w=i.width,h=i.height,sx=0,sy=0,sw=w,sh=h;
+if(sq){const m=Math.min(w,h);sx=(w-m)/2;sy=(h-m)/2;sw=sh=m;w=h=max}else{const k=Math.min(1,max/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k)}
+const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,w,h);x.drawImage(i,sx,sy,sw,sh,0,0,w,h);
+let k=.85,d=c.toDataURL('image/jpeg',k);while(d.length>limit&&k>.3){k-=.1;d=c.toDataURL('image/jpeg',k)}
+if(d.length>limit)throw new Error('Gambar terlalu besar, coba gambar lain');return d}
+// ----- Tema / background -----
+const THD0={bg:'',dim:35,blur:0,color:''};let TH=Object.assign({},THD0,L('nl_theme',{})),THD=null;
+function applyTheme(t){let l=$('#bgl'),o=$('#bgo');if(!l){document.body.insertAdjacentHTML('afterbegin','<div id="bgl"></div><div id="bgo"></div>');l=$('#bgl');o=$('#bgo')}
+l.style.cssText='position:fixed;inset:0;z-index:-2;background-size:cover;background-position:center;background-color:'+(/^#[0-9a-f]{6}$/i.test(t.color||'')?t.color:'transparent')+';background-image:'+(String(t.bg||'').startsWith('data:image/')?'url('+t.bg+')':'none');
+const b=Math.max(0,Math.min(12,+t.blur||0)),d=Math.max(0,Math.min(80,+t.dim||0))/100;
+o.style.cssText='position:fixed;inset:0;z-index:-1;pointer-events:none;background:rgba(0,0,0,'+d+');backdrop-filter:blur('+b+'px);-webkit-backdrop-filter:blur('+b+'px)'}
+applyTheme(TH);
+if(DB)DB.collection('settings').doc('theme').onSnapshot(s=>{TH=Object.assign({},THD0,s.exists?s.data():{});S('nl_theme',TH);applyTheme(THD||TH)},e=>console.error('Tema gagal dibaca (cek Rules untuk settings)',e));
+function thPrev(){const e=$('#thp');if(!e)return;e.style.backgroundColor=THD.color||'#0b1020';e.style.backgroundImage=THD.bg?'url('+THD.bg+')':'none'}
+function thSet(k,v){THD[k]=v;$('#t'+k).textContent=v+(k=='dim'?'%':'px');applyTheme(THD)}
+async function thFile(i){const f=i.files[0];i.value='';if(!f)return;try{THD.bg=await toJpeg(f,1280,false,850000);THD.color='';thPrev();applyTheme(THD)}catch(e){alert(e.message)}}
+function thClear(){THD.bg='';thPrev();applyTheme(THD)}
+function thColor(c){THD.color=c;THD.bg='';thPrev();applyTheme(THD)}
+async function thSave(){const d=Object.assign({},THD);if(DB){try{await DB.collection('settings').doc('theme').set(d)}catch(e){return alert('Gagal menyimpan tampilan ('+errT(e)+'). Pastikan Rules untuk settings sudah ditambahkan.')}}TH=d;S('nl_theme',TH);alert('Tampilan disimpan untuk semua pengguna')}
+function thReset(){ask('Background dan pengaturannya akan dikembalikan ke default.',{title:'Kembalikan default?',yes:'Ya, kembalikan'}).then(ok=>{if(ok){THD=Object.assign({},THD0);thPrev();applyTheme(THD);thSave();go('theme')}})}
+P.theme=()=>{if(!THD)THD=Object.assign({},TH);const d=THD;return`<h2>Tampilan web</h2><div class="card"><h3>Background</h3><div id="thp" style="height:180px;border-radius:18px;border:1px solid #ffffff1a;background-size:cover;background-position:center"></div>
+<div class="row" style="margin-top:12px"><button onclick="this.nextElementSibling.click()">Pilih gambar (PNG/JPG)</button><input type="file" accept="image/*" style="display:none" onchange="thFile(this)"><button class="sec" onclick="thClear()">Hapus gambar</button></div>
+<p class="mut">Gambar otomatis dikecilkan agar ringan. Tampil di semua perangkat setelah disimpan.</p>
+<label>Gelapkan: <span id="tdim">${d.dim}%</span></label><input type="range" min="0" max="80" step="1" value="${d.dim}" oninput="thSet('dim',+this.value)">
+<label>Blur: <span id="tblur">${d.blur}px</span></label><input type="range" min="0" max="12" step="1" value="${d.blur}" oninput="thSet('blur',+this.value)">
+<label>Warna polos (dipakai kalau tanpa gambar)</label><div class="row" style="gap:8px;margin:6px 0 14px">${['#1e2a5a','#0f3d3a','#4a1d3d','#1a1a1a','#3b2a12'].map(c=>`<div class="sw2" style="background:${c}" onclick="thColor('${c}')"></div>`).join('')}</div>
+<div class="row"><button onclick="thSave()">Simpan untuk semua pengguna</button><button class="sec" onclick="thReset()">Kembalikan default</button></div></div>`};
+I.theme=()=>thPrev();
+const _g3=go;go=function(p){if(p!=='theme'){THD=null;applyTheme(TH)}_g3(p)};
+// ----- Profil -----
+async function pfFile(i){const f=i.files[0];i.value='';if(!f)return;try{PF.photo=await toJpeg(f,256,true,120000);pfPrev()}catch(e){alert(e.message)}}
+function pfPrev(){const e=$('#pfa');if(e)e.innerHTML=av(me.u,PF.photo,96)}
+function pfDel(){PF.photo='';pfPrev()}
+async function saveProf(){const bio=($('#pb').value||'').trim().slice(0,300);PF.bio=bio;
+if(DB){try{await DB.collection('accounts').doc(me.u.toLowerCase()).set({u:me.u,r:me.r,bio,photo:PF.photo||''},{merge:true})}catch(x){return alert('Gagal menyimpan profil ('+errT(x)+')')}}
+else{const l=users.find(x=>x.u===me.u);if(l){l.bio=bio;l.photo=PF.photo||'';save()}}
+PF=null;paintNav();alert('Profil disimpan');go('profile')}
+async function chPw(){const o=$('#po').value,n=$('#pn').value,c=$('#pc').value;if(!o)return alert('Isi password lama dulu');if(pwErr(n))return alert(pwErr(n));if(n!==c)return alert('Konfirmasi password tidak sama');if(n===o)return alert('Password baru harus berbeda dari yang lama');
+if(DB){try{const id=me.u.toLowerCase(),sn=await DB.collection('accounts').doc(id).get(),d=sn.exists?sn.data():{};let ok;if(d.h)ok=d.h===await hsh(me.u,o);else{const l=users.find(x=>x.u===me.u);ok=!!l&&l.p===o}
+if(!ok)return alert('Password lama salah');await DB.collection('accounts').doc(id).set({u:me.u,r:me.r,h:await hsh(me.u,n)},{merge:true})}catch(x){return alert('Gagal mengganti password ('+errT(x)+')')}}
+else{const l=users.find(x=>x.u===me.u);if(!l||l.p!==o)return alert('Password lama salah');l.p=n;save()}
+['#po','#pn','#pc'].forEach(k=>$(k).value='');hint('pn','pnh');alert('Password berhasil diganti')}
+P.profile=()=>{const p=getProf();if(!PF)PF={photo:p.photo||'',bio:p.bio||''};return`<h2>Profil</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))"><div class="card" style="margin:0"><h3>Profil saya</h3>
+<div style="display:flex;gap:16px;align-items:center;margin-bottom:12px"><div id="pfa">${av(me.u,PF.photo,96)}</div><div><b style="font-size:20px">${q(me.u)}</b><div><span class="tag">${q(me.r)}</span></div></div></div>
+<div class="row"><button class="sec" onclick="this.nextElementSibling.click()">Ganti foto</button><input type="file" accept="image/*" style="display:none" onchange="pfFile(this)"><button class="sec" onclick="pfDel()">Hapus foto</button></div>
+<label style="display:block;margin-top:12px">Deskripsi (maks 300 karakter)</label><textarea id="pb" rows="4" maxlength="300" placeholder="Ceritakan tentang dirimu..." oninput="PF.bio=this.value">${q(PF.bio)}</textarea><button onclick="saveProf()">Simpan profil</button></div>
+<div class="card" style="margin:0"><h3>Ganti password</h3><label>Password lama</label><input id="po" type="password" autocomplete="current-password"><label>Password baru</label><input id="pn" type="password" autocomplete="new-password" oninput="hint('pn','pnh')"><div id="pnh" style="font-size:12px;margin:-6px 0 10px;line-height:1.7"></div><label>Ulangi password baru</label><input id="pc" type="password" autocomplete="new-password"><button onclick="chPw()">Simpan password</button></div></div>`};
+I.profile=()=>hint('pn','pnh');
+P.set=()=>`<h2>Pengaturan</h2><div class="card"><label>Nomor WhatsApp (format 62...)</label><input id="sw" value="${q(cfg.wa)}"><button onclick="cfg.wa=$('#sw').value.replace(/\\D/g,'');save();alert('Tersimpan')">Simpan</button><p class="mut">Ganti password ada di menu Profil.</p></div>`;
+adminNav.splice(adminNav.findIndex(x=>x[0]==='set'),0,['theme','Tampilan web'],['profile','Profil']);userNav.push(['profile','Profil']);
+// ----- Beranda gaya bento -----
+const bt=(c,cl,h,g)=>`<div class="bt ${cl||''}${g?' lk':''}" style="--c:${c}"${g?` onclick="go('${g}')"`:''}>${h}</div>`;
+P.home=()=>{const a=me.r==='admin',p=getProf();
+if(a){const op=tickets.filter(t=>t.s!=='Selesai').length,nw=tickets.filter(t=>t.s==='Baru').length,dn=tickets.length-op,uc=users.length+ACC.filter(x=>x.id!=='admin').length;
+return`<h2>Dashboard Admin</h2><div class="bento">`+
+bt('#6366f1','w2 h2',`<small>Tiket terbuka</small><b class="big">${op}</b><div><p class="mut" style="margin:0 0 10px">Belum selesai dan perlu ditangani.</p><button onclick="go('tix')">Kelola tiket</button></div>`)+
+bt('#22d3ee','',`<small>Total tiket</small><b>${tickets.length}</b>`,'tix')+
+bt('#10b981','',`<small>Selesai</small><b>${dn}</b>`,'tix')+
+bt('#f43f5e','',`<small>Tiket baru</small><b>${nw}</b>`,'tix')+
+bt('#f59e0b','',`<small>Pengguna</small><b>${uc}</b>`,'usr')+
+bt('#8b5cf6','w2',`<small>Aksi cepat</small><div class="row"><button class="sec" onclick="go('remote')">Remote web</button><button class="sec" onclick="go('theme')">Tampilan web</button></div>`)+
+bt('#0ea5e9','w2',`<div style="display:flex;gap:12px;align-items:center">${av(me.u,p.photo,48)}<div style="min-width:0"><b style="font-size:18px">${q(me.u)}</b><small>${q(p.bio||'Belum ada deskripsi. Buka menu Profil untuk mengisi.')}</small></div></div>`,'profile')+`</div>`}
+return`<h2>Halo, ${q(me.u)}</h2><div class="bento">`+
+bt('#6366f1','w2 h2',`<div>${av(me.u,p.photo,72)}</div><div><b style="font-size:24px">Selamat datang</b><p class="mut" style="margin:6px 0 12px">${q(p.bio||'Hitung subnet, rancang topologi, dan belajar jaringan di satu tempat.')}</p><button class="sec" onclick="go('profile')">Edit profil</button></div>`)+
+bt('#22d3ee','lk',`<span style="font-size:28px">\u{1F9EE}</span><b style="font-size:16px">Kalkulator IP</b>`,'ip')+
+bt('#f59e0b','lk',`<span style="font-size:28px">\u{1F5FA}\uFE0F</span><b style="font-size:16px">Topologi</b>`,'topo')+
+bt('#10b981','lk',`<span style="font-size:28px">\u{1F4DA}</span><b style="font-size:16px">Modul belajar</b>`,'mod')+
+bt('#f43f5e','lk',`<span style="font-size:28px">\u{1F6DF}</span><b style="font-size:16px">Bantuan</b>`,'help')+
+bt('#8b5cf6','w2',`<small>Tiket saya</small><b>${myT().length}</b>`,'help')+
+bt('#0ea5e9','lk',`<span style="font-size:28px">\u{1F4D0}</span><b style="font-size:16px">VLSM</b>`,'vlsm')+
+bt('#14b8a6','lk',`<span style="font-size:28px">\u{1F50C}</span><b style="font-size:16px">Referensi port</b>`,'ports')+`</div>`};
 if(me)start();
 </script></body></html>
